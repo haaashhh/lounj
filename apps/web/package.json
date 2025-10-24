@@ -1,0 +1,31 @@
+{
+  "name": "@worldscape/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@worldscape/database": "workspace:*",
+    "@worldscape/types": "workspace:*",
+    "@worldscape/ui": "workspace:*",
+    "next": "^15.1.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@worldscape/eslint-config": "workspace:*",
+    "@worldscape/typescript-config": "workspace:*",
+    "eslint": "^9.18.0",
+    "eslint-config-next": "^15.1.4",
+    "typescript": "^5.7.2"
+  }
+}

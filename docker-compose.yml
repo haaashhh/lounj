@@ -1,0 +1,130 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: worldscape-db
+    environment:
+      POSTGRES_USER: worldscape
+      POSTGRES_PASSWORD: worldscape
+      POSTGRES_DB: worldscape
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U worldscape"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: worldscape-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    container_name: worldscape-web
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://worldscape:worldscape@postgres:5432/worldscape
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./apps/web:/app/apps/web
+      - /app/node_modules
+      - /app/apps/web/node_modules
+    command: pnpm dev --filter @worldscape/web
+
+  api:
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile
+    container_name: worldscape-api
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://worldscape:worldscape@postgres:5432/worldscape
+      - PORT=3001
+      - HOST=0.0.0.0
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app/apps/api
+      - /app/node_modules
+      - /app/apps/api/node_modules
+    command: pnpm dev --filter @worldscape/api
+
+  realtime:
+    build:
+      context: .
+      dockerfile: ./apps/realtime/Dockerfile
+    container_name: worldscape-realtime
+    ports:
+      - "3002:3002"
+    environment:
+      - WS_PORT=3002
+    volumes:
+      - ./apps/realtime:/app/apps/realtime
+      - /app/node_modules
+      - /app/apps/realtime/node_modules
+    command: pnpm dev --filter @worldscape/realtime
+
+  media-proxy:
+    build:
+      context: .
+      dockerfile: ./services/media-proxy/Dockerfile
+    container_name: worldscape-media-proxy
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - HOST=0.0.0.0
+      - CORS_ORIGIN=*
+      - STORAGE_PATH=/var/media
+    volumes:
+      - ./services/media-proxy:/app/services/media-proxy
+      - media_data:/var/media
+      - /app/node_modules
+      - /app/services/media-proxy/node_modules
+    command: pnpm dev --filter @worldscape/media-proxy
+
+  world-builder:
+    build:
+      context: .
+      dockerfile: ./services/world-builder/Dockerfile
+    container_name: worldscape-world-builder
+    ports:
+      - "3004:3004"
+    environment:
+      - DATABASE_URL=postgresql://worldscape:worldscape@postgres:5432/worldscape
+      - PORT=3004
+      - HOST=0.0.0.0
+      - CORS_ORIGIN=*
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./services/world-builder:/app/services/world-builder
+      - /app/node_modules
+      - /app/services/world-builder/node_modules
+    command: pnpm dev --filter @worldscape/world-builder
+
+volumes:
+  postgres_data:
+  redis_data:
+  media_data:

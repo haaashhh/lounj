@@ -1,0 +1,17 @@
+{
+  "name": "@worldscape/typescript-config",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "files": [
+    "base.json",
+    "nextjs.json",
+    "node.json",
+    "react-library.json"
+  ],
+  "scripts": {
+    "build": "echo 'No build needed'",
+    "lint": "echo 'No lint needed'",
+    "type-check": "echo 'No type-check needed'"
+  }
+}
